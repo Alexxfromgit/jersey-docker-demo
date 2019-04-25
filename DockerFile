@@ -1,25 +1,21 @@
 # fetch basic image
-FROM maven:3.3.9-jdk-8 as build
+FROM maven:3.3.9-jdk-8
 
 # application placed into /opt/app
-WORKDIR /app
+RUN mkdir -p /opt/app
+WORKDIR /opt/app
 
 # selectively add the POM file and
 # install dependencies
-COPY pom.xml .
-COPY src src
+COPY pom.xml /opt/app/
+RUN mvn install
+
 # rest of the project
-RUN mvn install -DskipTests
+COPY src /opt/app/src
+RUN mvn package
 
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
+# local application port
+EXPOSE 8085
 
-FROM openjdk:8-jdk-alpine
-WORKDIR /app
-VOLUME /tmp
-ARG TARGET=/app/target/
-COPY --from=build ${TARGET}/lib /app/lib
-COPY --from=build ${TARGET}/classes .
-
-
-EXPOSE 8080
-ENTRYPOINT ["java","-cp","/app:/app/lib/*","com.dekses.jersey.docker.demo.Main"]
+# execute it
+CMD ["mvn", "exec:java"]

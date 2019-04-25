@@ -1,0 +1,32 @@
+version: "3.6"
+
+services:
+  105--1325-silenium--selenoid:
+    image: "aerokube/selenoid"
+    container_name: 105--1325-silenium--selenoid
+    network_mode: bridge
+    volumes:
+    - type: bind
+      source: /c/Users/Oleksandr_Rubtsov/selenoid/config/browsers.json
+      target: /etc/selenoid/browsers.json
+    - type: bind
+      source: /var/run/docker.sock
+      target: /var/run/docker.sock
+    - type: bind
+      source: /c/Users/Oleksandr_Rubtsov/selenoid/video
+      target: /opt/selenoid/video
+    environment:
+     - OVERRIDE_VIDEO_OUTPUT_DIR=/c/Users/Oleksandr_Rubtsov/selenoid/video
+    command: ["-conf", "/etc/selenoid/browsers.json", "-video-output-dir", "/opt/selenoid/video"]
+    ports:
+    - "4444:4444/tcp"
+
+  105--1325-silenium--selenoid-ui:
+    image: "aerokube/selenoid-ui"
+    container_name: 105--1325-silenium--selenoid-ui
+    network_mode: bridge
+    depends_on:
+    - 105--1325-silenium--selenoid
+    ports:
+    - "8083:8080"
+    command: ["--selenoid-uri", "http://selenoid:4444"]
